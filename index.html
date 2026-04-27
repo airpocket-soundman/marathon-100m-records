@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>男子マラソン・100m 世界記録推移（IAAF / World Athletics 公認）</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --fg: #1f2328;
+    --muted: #57606a;
+    --bg: #ffffff;
+    --bg-soft: #f6f8fa;
+    --border: #d0d7de;
+    --accent: #0969da;
+    --accent-soft: #ddf4ff;
+    --wr: #1a7f37;
+    --wr-soft: #dafbe1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN",
+                 "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px 64px;
+    line-height: 1.65;
+    color: var(--fg);
+    background: var(--bg);
+  }
+  h1 {
+    font-size: 26px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 21px;
+    margin-top: 48px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+  }
+  h3 { font-size: 16px; margin-top: 24px; }
+  .lede { color: var(--muted); margin: 4px 0 24px; }
+  .legend {
+    background: var(--bg-soft);
+    border-left: 4px solid var(--accent);
+    padding: 12px 18px;
+    margin: 16px 0 8px;
+    font-size: 14px;
+    border-radius: 0 6px 6px 0;
+  }
+  .legend ul { margin: 6px 0 0; padding-left: 20px; }
+  .legend li { margin: 2px 0; }
+  .badge {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .badge-wr { background: var(--wr-soft); color: var(--wr); }
+  .chart-container {
+    position: relative;
+    height: 440px;
+    margin: 24px 0 16px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  thead { background: var(--bg-soft); }
+  tbody tr:nth-child(odd) { background: #fcfcfd; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.cert { text-align: center; white-space: nowrap; }
+  .ref { font-size: 14px; }
+  .ref ol { padding-left: 22px; }
+  .ref li { margin: 6px 0; }
+  a { color: var(--accent); text-decoration: none; word-break: break-all; }
+  a:hover { text-decoration: underline; }
+  .footnote {
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--bg-soft);
+    padding: 12px 18px;
+    border-radius: 6px;
+    margin-top: 16px;
+  }
+  .current { font-weight: 700; color: var(--wr); }
+  @media (max-width: 720px) {
+    body { padding: 16px 12px; }
+    h1 { font-size: 22px; }
+    .chart-container { height: 360px; }
+    table { font-size: 13px; }
+    th, td { padding: 5px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>男子マラソン・100m 世界記録推移</h1>
+<p class="lede">IAAF（現 World Athletics）が公認した世界記録／世界ベストの進化。最終更新: 2026-04-27</p>
+
+<div class="legend">
+  <strong>凡例（認定区分）</strong>
+  <ul>
+    <li><span class="badge">※1</span> IAAF（現 World Athletics）が <em>世界ベスト（World Best）</em> として進化記録に登載（マラソン2003年以前）</li>
+    <li><span class="badge badge-wr">※2</span> IAAF / World Athletics が公式批准した <em>世界記録（World Record）</em>（マラソン 2003 Tergat〜）</li>
+    <li><span class="badge">※3</span> IAAF公認 100m 世界記録（手動計時 10分の1秒、〜1976年）</li>
+    <li><span class="badge badge-wr">※4</span> IAAF / World Athletics 公認 100m 世界記録（全自動電子計時 100分の1秒、1968年Hines〜）</li>
+  </ul>
+</div>
+
+<h2>男子マラソン（42.195 km）</h2>
+
+<div class="chart-container">
+  <canvas id="marathonChart" aria-label="男子マラソン世界記録の推移グラフ" role="img"></canvas>
+</div>
+
+<table id="marathonTable">
+  <thead>
+    <tr>
+      <th class="num">年</th>
+      <th>選手</th>
+      <th>国</th>
+      <th class="num">記録</th>
+      <th>備考</th>
+      <th class="cert">認定</th>
+    </tr>
+  </thead>
+  <tbody><!-- filled by JS --></tbody>
+</table>
+
+<h2>男子100m</h2>
+
+<div class="chart-container">
+  <canvas id="sprintChart" aria-label="男子100m世界記録の推移グラフ" role="img"></canvas>
+</div>
+
+<table id="sprintTable">
+  <thead>
+    <tr>
+      <th class="num">年</th>
+      <th>選手</th>
+      <th>国</th>
+      <th class="num">記録 (s)</th>
+      <th>備考</th>
+      <th class="cert">認定</th>
+    </tr>
+  </thead>
+  <tbody><!-- filled by JS --></tbody>
+</table>
+
+<div class="footnote">
+  1987年 Ben Johnson 9.83（ローマ）、2002年 Tim Montgomery 9.78（パリ）はドーピング違反で剥奪済みのため除外。
+</div>
+
+<h2>出典・参考文献</h2>
+<div class="ref">
+  <ol>
+    <li>World Athletics（旧 IAAF）公式 — Records / Progression
+      <ul>
+        <li>男子マラソン進化: <a href="https://worldathletics.org/records/by-progression/17427">https://worldathletics.org/records/by-progression/17427</a></li>
+        <li>男子100m: <a href="https://worldathletics.org/records/all-time-toplists/sprints/100-metres/outdoor/men/senior">https://worldathletics.org/records/all-time-toplists/sprints/100-metres/outdoor/men/senior</a></li>
+      </ul>
+    </li>
+    <li>Wikipedia: Marathon world record progression — IAAF / ARRS 認定併記
+      <br><a href="https://en.wikipedia.org/wiki/Marathon_world_record_progression">https://en.wikipedia.org/wiki/Marathon_world_record_progression</a></li>
+    <li>Wikipedia: Men's 100 metres world record progression
+      <br><a href="https://en.wikipedia.org/wiki/Men%27s_100_metres_world_record_progression">https://en.wikipedia.org/wiki/Men%27s_100_metres_world_record_progression</a></li>
+    <li>World Athletics: Khalid Khannouchi 引退記事（1999/2002 年世界記録の経緯）
+      <br><a href="https://worldathletics.org/news/news/khannouchi-former-marathon-world-record-holde">https://worldathletics.org/news/news/khannouchi-former-marathon-world-record-holde</a></li>
+    <li>2026 ロンドンマラソン世界記録報道
+      <ul>
+        <li>Olympics.com: <a href="https://www.olympics.com/en/news/kenya-s-sabastian-sawe-shatters-marathon-world-record-in-london">https://www.olympics.com/en/news/kenya-s-sabastian-sawe-shatters-marathon-world-record-in-london</a></li>
+        <li>Sky Sports: <a href="https://www.skysports.com/more-sports/athletics/news/29175/13536719/sabastian-sawe-wins-london-marathon-and-becomes-first-man-to-run-marathon-under-two-hours">https://www.skysports.com/more-sports/athletics/news/29175/13536719/sabastian-sawe-wins-london-marathon-and-becomes-first-man-to-run-marathon-under-two-hours</a></li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<div class="footnote">
+  <strong>補足</strong>: マラソンは2004年規程改定以前、IAAFは「世界ベスト」として進化を管理していたが公式批准はしていなかった。現規程下で遡及的に最初に批准されたのが Paul Tergat 2:04:55（2003年9月）である。
+  100mは1977年1月1日以降、IAAFが世界記録に全自動電子計時（千分の1秒測定、百分の1秒で公認）を必須化。1968年Jim Hines 9.95 は電子計時値で公認（手動計時値 9.9）。
+</div>
+
+<script>
+// ---- Data ----
+const marathonData = [
+  { year: 1908, athlete: "Johnny Hayes",       country: "USA",     time: "2:55:18.4", note: "ロンドン五輪", cert: "※1" },
+  { year: 1909, athlete: "Henry Barrett",      country: "GBR",     time: "2:42:31.0", note: "Polytechnic Marathon, ロンドン", cert: "※1" },
+  { year: 1913, athlete: "Alexis Ahlgren",     country: "SWE",     time: "2:36:06.6", note: "Polytechnic Marathon", cert: "※1" },
+  { year: 1920, athlete: "Hannes Kolehmainen", country: "FIN",     time: "2:32:35.8", note: "アントワープ五輪", cert: "※1" },
+  { year: 1925, athlete: "Albert Michelsen",   country: "USA",     time: "2:29:01.8", note: "Port Chester Marathon", cert: "※1" },
+  { year: 1935, athlete: "Sohn Kee-chung",     country: "JPN/KOR", time: "2:26:42",   note: "明治神宮競技大会、東京（登録名「孫基禎」）", cert: "※1" },
+  { year: 1947, athlete: "Suh Yun-bok",        country: "KOR",     time: "2:25:39",   note: "Boston Marathon", cert: "※1" },
+  { year: 1952, athlete: "Jim Peters",         country: "GBR",     time: "2:20:42.2", note: "Polytechnic Marathon", cert: "※1" },
+  { year: 1953, athlete: "Jim Peters",         country: "GBR",     time: "2:18:34.8", note: "Turku Marathon", cert: "※1" },
+  { year: 1954, athlete: "Jim Peters",         country: "GBR",     time: "2:17:39.4", note: "Polytechnic Marathon", cert: "※1" },
+  { year: 1958, athlete: "Sergei Popov",       country: "URS",     time: "2:15:17.0", note: "欧州選手権、ストックホルム", cert: "※1" },
+  { year: 1960, athlete: "Abebe Bikila",       country: "ETH",     time: "2:15:16.2", note: "ローマ五輪（裸足優勝）", cert: "※1" },
+  { year: 1967, athlete: "Derek Clayton",      country: "AUS",     time: "2:09:36.4", note: "福岡国際マラソン（初の2:10切り）", cert: "※1" },
+  { year: 1969, athlete: "Derek Clayton",      country: "AUS",     time: "2:08:33.6", note: "アントワープ", cert: "※1" },
+  { year: 1981, athlete: "Rob de Castella",    country: "AUS",     time: "2:08:18",   note: "福岡国際マラソン", cert: "※1" },
+  { year: 1984, athlete: "Steve Jones",        country: "GBR",     time: "2:08:05",   note: "Chicago Marathon", cert: "※1" },
+  { year: 1985, athlete: "Carlos Lopes",       country: "POR",     time: "2:07:12",   note: "Rotterdam Marathon", cert: "※1" },
+  { year: 1988, athlete: "Belayneh Dinsamo",   country: "ETH",     time: "2:06:50",   note: "Rotterdam Marathon", cert: "※1" },
+  { year: 1998, athlete: "Ronaldo da Costa",   country: "BRA",     time: "2:06:05",   note: "Berlin Marathon", cert: "※1" },
+  { year: 1999, athlete: "Khalid Khannouchi",  country: "MAR",     time: "2:05:42",   note: "Chicago Marathon（初の2:06切り）", cert: "※1" },
+  { year: 2002, athlete: "Khalid Khannouchi",  country: "USA",     time: "2:05:38",   note: "London Marathon", cert: "※1" },
+  { year: 2003, athlete: "Paul Tergat",        country: "KEN",     time: "2:04:55",   note: "Berlin Marathon（初のIAAF公式批准）", cert: "※2" },
+  { year: 2007, athlete: "Haile Gebrselassie", country: "ETH",     time: "2:04:26",   note: "Berlin Marathon", cert: "※2" },
+  { year: 2008, athlete: "Haile Gebrselassie", country: "ETH",     time: "2:03:59",   note: "Berlin Marathon（初の2:04切り）", cert: "※2" },
+  { year: 2011, athlete: "Patrick Makau",      country: "KEN",     time: "2:03:38",   note: "Berlin Marathon", cert: "※2" },
+  { year: 2013, athlete: "Wilson Kipsang",     country: "KEN",     time: "2:03:23",   note: "Berlin Marathon", cert: "※2" },
+  { year: 2014, athlete: "Dennis Kimetto",     country: "KEN",     time: "2:02:57",   note: "Berlin Marathon（初の2:03切り）", cert: "※2" },
+  { year: 2018, athlete: "Eliud Kipchoge",     country: "KEN",     time: "2:01:39",   note: "Berlin Marathon", cert: "※2" },
+  { year: 2022, athlete: "Eliud Kipchoge",     country: "KEN",     time: "2:01:09",   note: "Berlin Marathon", cert: "※2" },
+  { year: 2023, athlete: "Kelvin Kiptum",      country: "KEN",     time: "2:00:35",   note: "Chicago Marathon", cert: "※2" },
+  { year: 2026, athlete: "Sabastian Sawe",     country: "KEN",     time: "1:59:30",   note: "London Marathon（初の公式レース2時間切り、現行世界記録 / 批准手続中）", cert: "※2", current: true },
+];
+
+const sprintData = [
+  { year: 1912, athlete: "Donald Lippincott", country: "USA", seconds: 10.6,  note: "ストックホルム五輪（初のIAAF公認）", cert: "※3" },
+  { year: 1921, athlete: "Charlie Paddock",   country: "USA", seconds: 10.4,  note: "Redlands, CA", cert: "※3" },
+  { year: 1930, athlete: "Percy Williams",    country: "CAN", seconds: 10.3,  note: "Toronto", cert: "※3" },
+  { year: 1936, athlete: "Jesse Owens",       country: "USA", seconds: 10.2,  note: "Chicago", cert: "※3" },
+  { year: 1956, athlete: "Willie Williams",   country: "USA", seconds: 10.1,  note: "Berlin", cert: "※3" },
+  { year: 1960, athlete: "Armin Hary",        country: "GER", seconds: 10.0,  note: "チューリッヒ（手動計時）", cert: "※3" },
+  { year: 1968, athlete: "Jim Hines",         country: "USA", seconds: 9.95,  note: "メキシコ五輪（電子計時で初の10秒切り）", cert: "※4" },
+  { year: 1983, athlete: "Calvin Smith",      country: "USA", seconds: 9.93,  note: "Colorado Springs", cert: "※4" },
+  { year: 1988, athlete: "Carl Lewis",        country: "USA", seconds: 9.92,  note: "ソウル五輪（B. Johnson失格に伴い繰上）", cert: "※4" },
+  { year: 1991, athlete: "Leroy Burrell",     country: "USA", seconds: 9.90,  note: "New York", cert: "※4" },
+  { year: 1991, athlete: "Carl Lewis",        country: "USA", seconds: 9.86,  note: "東京世界選手権", cert: "※4" },
+  { year: 1994, athlete: "Leroy Burrell",     country: "USA", seconds: 9.85,  note: "Lausanne（実値 9.848）", cert: "※4" },
+  { year: 1996, athlete: "Donovan Bailey",    country: "CAN", seconds: 9.84,  note: "アトランタ五輪（実値 9.835）", cert: "※4" },
+  { year: 1999, athlete: "Maurice Greene",    country: "USA", seconds: 9.79,  note: "Athens", cert: "※4" },
+  { year: 2005, athlete: "Asafa Powell",      country: "JAM", seconds: 9.77,  note: "Athens（実値 9.768）", cert: "※4" },
+  { year: 2007, athlete: "Asafa Powell",      country: "JAM", seconds: 9.74,  note: "Rieti", cert: "※4" },
+  { year: 2008, athlete: "Usain Bolt",        country: "JAM", seconds: 9.72,  note: "New York", cert: "※4" },
+  { year: 2008, athlete: "Usain Bolt",        country: "JAM", seconds: 9.69,  note: "北京五輪（実値 9.683）", cert: "※4" },
+  { year: 2009, athlete: "Usain Bolt",        country: "JAM", seconds: 9.58,  note: "Berlin世界選手権（実値 9.572、現行世界記録）", cert: "※4", current: true },
+];
+
+// ---- Helpers ----
+function timeStringToMinutes(s) {
+  const [h, m, rest] = s.split(":");
+  return Number(h) * 60 + Number(m) + Number(rest) / 60;
+}
+function minutesToHms(min) {
+  const totalSec = Math.round(min * 60);
+  const h = Math.floor(totalSec / 3600);
+  const remSec = totalSec - h * 3600;
+  const m = Math.floor(remSec / 60);
+  const s = remSec - m * 60;
+  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+// ---- Render Tables ----
+function renderTable(tbodyId, rows, format) {
+  const tbody = document.querySelector(`#${tbodyId} tbody`);
+  const html = rows.map((r) => {
+    const recordCell = format === "marathon" ? r.time : r.seconds.toFixed(2);
+    const currentClass = r.current ? " class=\"current\"" : "";
+    return `<tr>
+      <td class="num">${r.year}</td>
+      <td${currentClass}>${r.athlete}</td>
+      <td>${r.country}</td>
+      <td class="num">${recordCell}</td>
+      <td>${r.note}</td>
+      <td class="cert">${r.cert}</td>
+    </tr>`;
+  }).join("");
+  tbody.innerHTML = html;
+}
+renderTable("marathonTable", marathonData, "marathon");
+renderTable("sprintTable", sprintData, "sprint");
+
+// ---- Render Charts ----
+const certColor = (cert) => cert === "※2" || cert === "※4"
+  ? "rgba(26, 127, 55, 1)"
+  : "rgba(9, 105, 218, 1)";
+
+function buildPointStyles(rows) {
+  return {
+    pointBackgroundColor: rows.map((r) => certColor(r.cert)),
+    pointBorderColor: rows.map((r) => certColor(r.cert)),
+    pointRadius: rows.map((r) => r.current ? 7 : 4),
+    pointHoverRadius: rows.map((r) => r.current ? 9 : 6),
+    pointStyle: rows.map((r) => r.current ? "rectRot" : "circle"),
+  };
+}
+
+// Marathon chart
+{
+  const ctx = document.getElementById("marathonChart").getContext("2d");
+  const points = marathonData.map((r) => ({
+    x: r.year,
+    y: timeStringToMinutes(r.time),
+    raw: r,
+  }));
+  const styles = buildPointStyles(marathonData);
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      datasets: [{
+        label: "男子マラソン世界記録（h:mm:ss）",
+        data: points,
+        borderColor: "rgba(57, 89, 122, 0.6)",
+        backgroundColor: "rgba(9, 105, 218, 0.1)",
+        borderWidth: 2,
+        fill: false,
+        tension: 0,
+        stepped: "after",
+        ...styles,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => `${items[0].raw.raw.year}  ${items[0].raw.raw.athlete} (${items[0].raw.raw.country})`,
+            label: (item) => [
+              `記録: ${item.raw.raw.time}`,
+              `備考: ${item.raw.raw.note}`,
+              `認定: ${item.raw.raw.cert}`,
+            ],
+          },
+        },
+        title: {
+          display: true,
+          text: "男子マラソン 世界記録の推移（1908–2026）",
+          font: { size: 15 },
+        },
+      },
+      scales: {
+        x: {
+          type: "linear",
+          title: { display: true, text: "年（線形・経過年数に比例）" },
+          ticks: {
+            stepSize: 10,
+            callback: (v) => Number.isInteger(v) ? v : "",
+            maxRotation: 0,
+          },
+          min: 1905,
+          max: 2030,
+          grid: { color: "rgba(0,0,0,0.06)" },
+        },
+        y: {
+          reverse: true,
+          title: { display: true, text: "記録 (h:mm:ss)" },
+          ticks: { callback: (v) => minutesToHms(v) },
+          grid: { color: "rgba(0,0,0,0.06)" },
+        },
+      },
+    },
+  });
+}
+
+// 100m chart
+{
+  const ctx = document.getElementById("sprintChart").getContext("2d");
+  const points = sprintData.map((r) => ({ x: r.year, y: r.seconds, raw: r }));
+  const styles = buildPointStyles(sprintData);
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      datasets: [{
+        label: "男子100m世界記録 (秒)",
+        data: points,
+        borderColor: "rgba(57, 89, 122, 0.6)",
+        backgroundColor: "rgba(9, 105, 218, 0.1)",
+        borderWidth: 2,
+        fill: false,
+        tension: 0,
+        stepped: "after",
+        ...styles,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => `${items[0].raw.raw.year}  ${items[0].raw.raw.athlete} (${items[0].raw.raw.country})`,
+            label: (item) => [
+              `記録: ${item.raw.raw.seconds.toFixed(2)} 秒`,
+              `備考: ${item.raw.raw.note}`,
+              `認定: ${item.raw.raw.cert}`,
+            ],
+          },
+        },
+        title: {
+          display: true,
+          text: "男子 100m 世界記録の推移（1912–2009）",
+          font: { size: 15 },
+        },
+      },
+      scales: {
+        x: {
+          type: "linear",
+          title: { display: true, text: "年（線形・経過年数に比例）" },
+          ticks: {
+            stepSize: 10,
+            callback: (v) => Number.isInteger(v) ? v : "",
+            maxRotation: 0,
+          },
+          min: 1910,
+          max: 2030,
+          grid: { color: "rgba(0,0,0,0.06)" },
+        },
+        y: {
+          reverse: true,
+          title: { display: true, text: "記録 (秒)" },
+          ticks: { stepSize: 0.2 },
+          min: 9.4,
+          max: 10.8,
+          grid: { color: "rgba(0,0,0,0.06)" },
+        },
+      },
+    },
+  });
+}
+</script>
+
+</body>
+</html>
