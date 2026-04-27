@@ -366,7 +366,6 @@ function buildPointStyles(rows) {
           grid: { color: "rgba(0,0,0,0.06)" },
         },
         y: {
-          reverse: true,
           title: { display: true, text: "記録 (h:mm:ss)" },
           ticks: { callback: (v) => minutesToHms(v) },
           grid: { color: "rgba(0,0,0,0.06)" },
@@ -432,7 +431,6 @@ function buildPointStyles(rows) {
           grid: { color: "rgba(0,0,0,0.06)" },
         },
         y: {
-          reverse: true,
           title: { display: true, text: "記録 (秒)" },
           ticks: { stepSize: 0.2 },
           min: 9.4,
